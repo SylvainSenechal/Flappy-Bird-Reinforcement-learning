@@ -23,6 +23,8 @@ function loop(){ // Voir l'ordre des fonctions
   checkCollisions()
   calculateInputs()
   decisionsIA()
+  storeBestCar()
+  checkForNewGeneration()
 
   dessin()
   requestAnimationFrame(loop);
@@ -43,10 +45,12 @@ function initCars(){
   }
 }
 
+
+
 var jeu = {
   map: [],
   listCar: [],
-  nbCars: 2000,
+  nbCars: 800,
   positionX: 50,
   positionY: 50,
   widthCase: 18, // pair : %2 == 0
@@ -54,18 +58,12 @@ var jeu = {
   yStart: 200,
   nbCaseX: 100, // largeur
   nbCaseY: 50,  // heuteur
-  typeMap: 0, // Le type de map qu'on pose, incrémenté avec "espace" event
+  typeMap: 1, // Le type de map qu'on pose, 0 = sol, 1 = depart, 2 = arrivée
   maxSpeed: 15,
-  minSpeed: 0,
-}
+  minSpeed: -15,
 
-var savedBrain = {
-  brain: []
-}
-function saveBrain(car){
-  for(i=0; i<4; i++){
-      savedBrain.brain[i] = car.brain[i]
-  }
+  bestCar: null, // <=> saved best brain
+  bestCarFitness: 0,
 }
 
 Car = function(similarBrain){
@@ -78,7 +76,8 @@ Car = function(similarBrain){
 
   this.speed = 0
 
-  this.travelledDST = 0 // <=> fitness
+  this.travelledDST = 0 // <=> fitness ?
+  this.fitness = 0
 
   this.frontDST = 0 // 5 inputs
   this.leftDST = 0
@@ -106,14 +105,16 @@ Brain = function(iBrain){
     this.w3 = -1 + Math.random()*2
     this.w4 = -1 + Math.random()*2
     this.w5 = -1 + Math.random()*2
+    this.w6 = -1 + Math.random()*2 // Own speed
     // ajouter wBias
   }
   else if(arguments.length == 1){
-    this.w1 = savedBrain.brain[iBrain].w1 + (-1 + Math.random()*2)/10
-    this.w2 = savedBrain.brain[iBrain].w2 + (-1 + Math.random()*2)/10
-    this.w3 = savedBrain.brain[iBrain].w3 + (-1 + Math.random()*2)/10
-    this.w4 = savedBrain.brain[iBrain].w4 + (-1 + Math.random()*2)/10
-    this.w5 = savedBrain.brain[iBrain].w5 + (-1 + Math.random()*2)/10
+    this.w1 = jeu.bestCar.brain[iBrain].w1 + (-1 + Math.random()*2)/10
+    this.w2 = jeu.bestCar.brain[iBrain].w2 + (-1 + Math.random()*2)/10
+    this.w3 = jeu.bestCar.brain[iBrain].w3 + (-1 + Math.random()*2)/10
+    this.w4 = jeu.bestCar.brain[iBrain].w4 + (-1 + Math.random()*2)/10
+    this.w5 = jeu.bestCar.brain[iBrain].w5 + (-1 + Math.random()*2)/10
+    this.w6 = jeu.bestCar.brain[iBrain].w6 + (-1 + Math.random()*2)/10
   }
 }
 
@@ -123,28 +124,56 @@ function useBrain(car, brain){
   let i3 = car.leftQuarterDST / 1800 // nb : faire un pythagore car diagonale 1800 + 900 sqrt..
   let i4 = car.rightDST / 1800
   let i5 = car.rightQuarterDST / 1800
+  let i6 = car.speed / (jeu.maxSpeed - jeu.minSpeed)
 
   let bias = 1 // A voir
   return i1*brain.w1 + i2*brain.w2 + i3*brain.w3 +
-          i4*brain.w4 + i5*brain.w5
+          i4*brain.w4 + i5*brain.w5 + i6*brain.w6
 }
-function nextGen(){
-  console.log("ah")
+
+function checkForNewGeneration(){
+  let maxSpeed = jeu.minSpeed
+  let restart = true
+  let cpt = 0
+  for(i=0; i<jeu.listCar.length; i++){
+    if(jeu.listCar[i].speed > 1){
+      restart = false
+      cpt++
+      console.log("cpt : " + cpt)
+    }
+  }
+  if(restart == true){
+    console.log("restart")
+  }
 }
+
+function storeBestCar(){
+  for(let u=0; u<jeu.listCar.length; u++){
+    if(jeu.listCar[u].travelledDST > jeu.bestCarFitness){
+      jeu.bestCarFitness = jeu.listCar[u].travelledDST
+      jeu.bestCar = jeu.listCar[u]
+    }
+  }
+}
+
+function breedNewGeneration(){
+  for(i=0; i<jeu.nbCars; i++){
+    jeu.listCar[i] = new Car(true)
+  }
+}
+
 function decisionsIA(){
   for(i=0; i<jeu.listCar.length; i++){
     // Brain 1 accelerate decision
+    let accelerationActivated = false
     if(useBrain(jeu.listCar[i], jeu.listCar[i].brain[0]) > 0){
       jeu.listCar[i].speed += 0.1
       if(jeu.listCar[i].speed > jeu.maxSpeed){
         jeu.listCar[i].speed = jeu.maxSpeed
       }
+      accelerationActivated = true
     }
     // Brain 2 decelerate decision
-    // jeu.listCar[i].speed -= 0.05
-    // if(jeu.listCar[i].speed < 0){
-    //   jeu.listCar[i].speed = 0
-    // }
     if(useBrain(jeu.listCar[i], jeu.listCar[i].brain[1]) > 0){
       jeu.listCar[i].speed -= 0.1
       if(jeu.listCar[i].speed < jeu.minSpeed){
@@ -316,22 +345,39 @@ function checkCollisions(){
 // CREATION DE MAP + DESSINER
 /////////////////////////////
 
-var mouseDown = false
+
 document.onmousemove = function(e){
-  if(mouseDown == true && jeu.typeMap == 0){
-    // console.log("")
-    // console.log(Math.floor((e.x-jeu.positionX)/jeu.widthCase))
-    // console.log(Math.floor((e.y-jeu.positionY)/jeu.widthCase))
+  if(mouseDown == true && jeu.typeMap == 1){
     let caseX = Math.floor((e.x-jeu.positionX)/jeu.widthCase)
     let caseY = Math.floor((e.y-jeu.positionY)/jeu.widthCase)
     for(i=-2; i<3; i++){
       for(j=-2; j<3; j++){
-        jeu.map[caseX+i][caseY+j] = 1
+        if(jeu.map[caseX+i][caseY+j] != 2){
+          jeu.map[caseX+i][caseY+j] = 1
+        }
       }
     }
   }
+  else if(mouseDown == false && jeu.typeMap == 1){
+    let caseX = Math.floor((e.x-jeu.positionX)/jeu.widthCase)
+    let caseY = Math.floor((e.y-jeu.positionY)/jeu.widthCase)
+    ctx.fillStyle = "rgba(0, 0, 0)"
+    for(i=-2; i<3; i++){
+      for(j=-2; j<3; j++){
+        if(jeu.map[caseX][caseY] != 2){
+          ctx.fillRect(jeu.positionX + (caseX+i)*jeu.widthCase, jeu.positionY + (caseY+j)*jeu.widthCase, jeu.widthCase, jeu.widthCase);
+        }
+      }
+    }
+  }
+  else if(mouseDown == false && jeu.typeMap == 2){
+    let caseX = Math.floor((e.x-jeu.positionX)/jeu.widthCase)
+    let caseY = Math.floor((e.y-jeu.positionY)/jeu.widthCase)
+    ctx.fillStyle = "rgba(0, 255, 0)"
+    ctx.fillRect(jeu.positionX + caseX*jeu.widthCase, jeu.positionY + caseY*jeu.widthCase, jeu.widthCase, jeu.widthCase);
+  }
 }
-
+var mouseDown = false
 document.onmousedown = function(e){
   mouseDown = true
 }
@@ -339,21 +385,26 @@ document.onmouseup = function(e){
   mouseDown = false
 }
 document.onclick = function(e){
-  if(jeu.typeMap == 1){
+  if(jeu.typeMap == 2){
+    solNonpose = false
     let caseX = Math.floor((e.x-jeu.positionX)/jeu.widthCase)
     let caseY = Math.floor((e.y-jeu.positionY)/jeu.widthCase)
-    jeu.map[caseX][caseY] = 2
-    jeu.xStart = (e.x-jeu.positionX) + jeu.positionX
-    jeu.yStart = (e.y-jeu.positionY) + jeu.positionY //caseY*jeu.widthCase
-    initCars()
+    if(caseX >= 0 && caseX < jeu.nbCaseX && caseY >= 0 && caseY < jeu.nbCaseY){
+      jeu.map[caseX][caseY] = 2
+      jeu.xStart = (e.x-jeu.positionX) + jeu.positionX
+      jeu.yStart = (e.y-jeu.positionY) + jeu.positionY
+    }
   }
 }
-document.onkeydown = function(e){
-  console.log(e.keyCode)
-  if(e.keyCode == 32){
-    jeu.typeMap = 1;
-  }
+
+function typeDrawGround(){
+  jeu.typeMap = 1
 }
+
+function typeDrawStart(){
+  jeu.typeMap = 2
+}
+
 
 function dessin(){ // Dessiner les 5 inputs des voitures
 	ctx.clearRect(0, 0, canvas.width, 50) // clear map
@@ -363,20 +414,42 @@ function dessin(){ // Dessiner les 5 inputs des voitures
   ctx.globalCompositeOperation = "source-over";
   for(i=0; i<jeu.nbCaseX; i++){
     for(j=0; j<jeu.nbCaseY; j++){
-      if(jeu.map[i][j] == 0){
+      if(jeu.map[i][j] == 0){ // sol
         ctx.fillStyle = "rgba(76, 97, 130, 0.2)" // "#4c6182"
         ctx.fillRect(jeu.positionX + i*jeu.widthCase, jeu.positionY + j*jeu.widthCase, jeu.widthCase, jeu.widthCase);
       }
-      else if(jeu.map[i][j] == 1){
+      else if(jeu.map[i][j] == 1){ // chemin
         ctx.fillStyle = "rgba(0, 0, 0, 0.1)" // "#000000"
         ctx.fillRect(jeu.positionX + i*jeu.widthCase, jeu.positionY + j*jeu.widthCase, jeu.widthCase, jeu.widthCase);
       }
-      else if(jeu.map[i][j] == 2){
+      else if(jeu.map[i][j] == 2){ // depart
         ctx.fillStyle = "rgba(0, 255, 0, 0.2)" //"#00ff00"
         ctx.fillRect(jeu.positionX + i*jeu.widthCase, jeu.positionY + j*jeu.widthCase, jeu.widthCase, jeu.widthCase);
       }
     }
   }
+  // Drawing Inputs cars :
+  for(i=0; i<jeu.listCar.length; i++){
+    let car = jeu.listCar[i]
+    ctx.beginPath();
+    ctx.strokeStyle = car.color
+    ctx.moveTo(car.x, car.y);
+    ctx.lineTo(car.x + Math.cos(car.orientation*Math.PI/180)*car.frontDST, car.y + Math.sin(car.orientation*Math.PI/180)*car.frontDST);
+    ctx.stroke();
+    ctx.moveTo(car.x, car.y);
+    ctx.lineTo(car.x + Math.cos((car.orientation+90)*Math.PI/180)*car.rightDST, car.y + Math.sin((car.orientation+90)*Math.PI/180)*car.rightDST);
+    ctx.stroke();
+    ctx.moveTo(car.x, car.y);
+    ctx.lineTo(car.x + Math.cos((car.orientation-90)*Math.PI/180)*car.leftDST, car.y + Math.sin((car.orientation-90)*Math.PI/180)*car.leftDST);
+    ctx.stroke();
+    ctx.moveTo(car.x, car.y);
+    ctx.lineTo(car.x + Math.cos((car.orientation+45)*Math.PI/180)*car.rightQuarterDST, car.y + Math.sin((car.orientation+45)*Math.PI/180)*car.rightQuarterDST);
+    ctx.stroke();
+    ctx.moveTo(car.x, car.y);
+    ctx.lineTo(car.x + Math.cos((car.orientation-45)*Math.PI/180)*car.leftQuarterDST, car.y + Math.sin((car.orientation-45)*Math.PI/180)*car.leftQuarterDST);
+    ctx.stroke();
+  }
+  // Drawing cars
   for(i=0; i< jeu.listCar.length; i++){
     ctx.beginPath()
     ctx.fillStyle = jeu.listCar[i].color
@@ -386,7 +459,7 @@ function dessin(){ // Dessiner les 5 inputs des voitures
   ctx.globalCompositeOperation = "darken";
 
   ctx.strokeStyle = "#000000"
-	ctx.strokeText("Car left : " + jeu.listCar.length + " / " + jeu.nbCars, 50, 40)
+	ctx.strokeText("Cars left : " + jeu.listCar.length + " / " + jeu.nbCars, 50, 40)
   // ctx.strokeText("ComputerWin : " + jeu.computerWin, 400, 40)
 }
 

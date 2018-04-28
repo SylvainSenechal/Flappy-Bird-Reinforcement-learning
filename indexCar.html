@@ -7,7 +7,10 @@
         <canvas id="mon_canvas">
             Message pour les navigateurs ne supportant pas encore canvas.
         </canvas>
-        <button type="button" id="restart" onclick="nextGen()"> Next geneneration</button>
+        <button type="button" id="restart" onclick="breedNewGeneration()"> Force new geneneration breeding</button>
+        <button type="button" id="start" onclick="initCars()"> Start </button>
+        <button type="button" id="typeMapGround" onclick="typeDrawGround()"> Draw ground </button>
+        <button type="button" id="typeMapStart" onclick="typeDrawStart()"> Position starting point </button>
     </body>
 </html>
 <style>
@@ -22,9 +25,39 @@
     #restart {
       position: absolute;
       top: 5px;
-      width: 10%;
+      width: 150px;
       height: 40px;
-      left: 30%;
+      left: 450px;
+      z-index: 100;
+      display:block;
+      overflow: auto;
+    }
+    #start {
+      position: absolute;
+      top: 5px;
+      width: 100px;
+      height: 40px;
+      left: 650px;
+      z-index: 100;
+      display:block;
+      overflow: auto;
+    }
+    #typeMapGround {
+      position: absolute;
+      top: 5px;
+      width: 100px;
+      height: 40px;
+      left: 800px;
+      z-index: 100;
+      display:block;
+      overflow: auto;
+    }
+    #typeMapStart {
+      position: absolute;
+      top: 5px;
+      width: 100px;
+      height: 40px;
+      left: 950px;
       z-index: 100;
       display:block;
       overflow: auto;
