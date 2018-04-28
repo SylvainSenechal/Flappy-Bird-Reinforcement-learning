@@ -1,3 +1,5 @@
+// To add ia training against ia
+
 window.addEventListener('load', init);
 var ctx, canvas
 var width, height
@@ -41,7 +43,6 @@ function initGame(){
 }
 
 function restoreGame(){
-
   if(jeu.matchPlayed == jeu.gamesBeforeNewGen){ // Total restore with similar best brain
     printData()
     jeu.matchPlayed = 1
@@ -91,17 +92,6 @@ function restoreGame(){
   }
 }
 
-var u = [{"w1":0.5507727224134604,"w2":-0.9753377003404812,"w3":-0.8416111199117011,"w4":-0.9447910366281431,"w5":-0.6279256022156814,"w6":-0.42484383242462764,"w7":0.5960817132094893,"w8":0.9782266200163604,"w9":-0.3825766182819445},
-{"w1":-0.1799282298883517,"w2":0.597327782013473,"w3":-0.49517086529834686,"w4":-0.9121269699288882,"w5":0.24718765725242614,"w6":-0.5202466034555648,"w7":0.9682048355448749,"w8":0.5275789997978656,"w9":0.318467278727286},
-{"w1":-0.5590678608966853,"w2":0.2886530890259357,"w3":-0.5444392958088435,"w4":0.05993249976526606,"w5":-0.25733679213339195,"w6":-0.7964469670631932,"w7":-0.4523302737302052,"w8":0.4760990015716751,"w9":0.78527747737039},
-{"w1":0.3147636487961523,"w2":-0.29536323137144077,"w3":0.4027047714547564,"w4":-0.5341344844646999,"w5":-0.16399325106299623,"w6":-0.4107063681790262,"w7":0.5678081743548284,"w8":0.22348656399565917,"w9":0.08818690572588392},
-{"w1":-0.6224827199179078,"w2":0.948975272951824,"w3":-0.08218490328570034,"w4":0.8897170743453185,"w5":-0.32987158867205835,"w6":0.12383925832960437,"w7":-0.5165623358499895,"w8":-0.6469053039686327,"w9":0.10790704536616605},
-{"w1":-0.36643881346339297,"w2":0.16260990098540112,"w3":0.041450241626868715,"w4":-0.3452720968261079,"w5":-0.6832422370391259,"w6":0.7365402730659186,"w7":0.8676924859994316,"w8":0.6137775929863576,"w9":-0.9143073561761419},
-{"w1":0.10821996137441417,"w2":-0.5915663776209096,"w3":0.767206317158314,"w4":-0.2899128462238207,"w5":0.8879332206896134,"w6":0.6662741626680353,"w7":0.05670266850089618,"w8":0.3462010664546586,"w9":-0.009854958353932082},
-{"w1":0.8710638700963347,"w2":0.32220019079607737,"w3":0.23456946290118086,"w4":-0.36547612986986755,"w5":-0.9529146490542323,"w6":-0.7346021648196953,"w7":-0.2598462542105825,"w8":-0.9228299666797486,"w9":0.07006713348477486},
-{"w1":-0.37221677643109485,"w2":0.780737273016136,"w3":0.28602036792657604,"w4":-0.19612975489426768,"w5":0.07927010088791184,"w6":-0.9552475625221841,"w7":-0.3405948344458601,"w8":-0.3788899073182989,"w9":-0.24537717972010029}]
-console.log(u[0].w1)
-
 function printData(){
   console.log("Played matchs : " + jeu.matchPlayed)
   console.log("Max won: " + Math.max(...jeu.listWon))
@@ -125,7 +115,7 @@ var jeu = {
   nbGamesXaxis: 20, // 20 idéal
   nbGamesYaxis: 20,
   grid: [],
-  nbGames: 10000, // nbGamesXaxis * nbGamesYaxis
+  nbGames: 20000, // nbGamesXaxis * nbGamesYaxis
   listGame: [],
   listWon: [],
   listNoWon: [],
@@ -146,7 +136,7 @@ var jeu = {
   score: 0,
   nbGeneration: 1,
   maxFitness: 0,
-  gamesBeforeNewGen: 20,
+  gamesBeforeNewGen: 200,
 }
 
 var savedBrain = {
@@ -192,34 +182,37 @@ Brain = function(iBrain){
     this.w7 = -1 + Math.random()*2
     this.w8 = -1 + Math.random()*2
     this.w9 = -1 + Math.random()*2
+    this.w10 = -1 + Math.random()*2
   }
   else if(arguments.length == 1){
-    this.w1 = savedBrain.brain[iBrain].w1 + (-1 + Math.random()*2)/100
-    this.w2 = savedBrain.brain[iBrain].w2 + (-1 + Math.random()*2)/100
-    this.w3 = savedBrain.brain[iBrain].w3 + (-1 + Math.random()*2)/100
-    this.w4 = savedBrain.brain[iBrain].w4 + (-1 + Math.random()*2)/100
-    this.w5 = savedBrain.brain[iBrain].w5 + (-1 + Math.random()*2)/100
-    this.w6 = savedBrain.brain[iBrain].w6 + (-1 + Math.random()*2)/100
-    this.w7 = savedBrain.brain[iBrain].w7 + (-1 + Math.random()*2)/100
-    this.w8 = savedBrain.brain[iBrain].w8 + (-1 + Math.random()*2)/100
-    this.w9 = savedBrain.brain[iBrain].w9 + (-1 + Math.random()*2)/100
+    this.w1 = savedBrain.brain[iBrain].w1 + (-1 + Math.random()*2)/3
+    this.w2 = savedBrain.brain[iBrain].w2 + (-1 + Math.random()*2)/3
+    this.w3 = savedBrain.brain[iBrain].w3 + (-1 + Math.random()*2)/3
+    this.w4 = savedBrain.brain[iBrain].w4 + (-1 + Math.random()*2)/3
+    this.w5 = savedBrain.brain[iBrain].w5 + (-1 + Math.random()*2)/3
+    this.w6 = savedBrain.brain[iBrain].w6 + (-1 + Math.random()*2)/3
+    this.w7 = savedBrain.brain[iBrain].w7 + (-1 + Math.random()*2)/3
+    this.w8 = savedBrain.brain[iBrain].w8 + (-1 + Math.random()*2)/3
+    this.w9 = savedBrain.brain[iBrain].w9 + (-1 + Math.random()*2)/3
+    this.w10 = savedBrain.brain[iBrain].w10 + (-1 + Math.random()*2)/3
   }
 }
 
 function useBrain(idGame, brain){
   // inputs = [xBird, xFirstPipe, yTopPipe, yBottomPipe] + normalize
-  let i1 = jeu.listGame[idGame].grid[0][0] / 2 // (val = 0||1||2) --> range = 2
-  let i2 = jeu.listGame[idGame].grid[0][1] / 2 // (val = 0||1||2) --> range = 2
-  let i3 = jeu.listGame[idGame].grid[0][2] / 2 // (val = 0||1||2) --> range = 2
-  let i4 = jeu.listGame[idGame].grid[1][0] / 2 // (val = 0||1||2) --> range = 2
-  let i5 = jeu.listGame[idGame].grid[1][1] / 2 // (val = 0||1||2) --> range = 2
-  let i6 = jeu.listGame[idGame].grid[1][2] / 2 // (val = 0||1||2) --> range = 2
-  let i7 = jeu.listGame[idGame].grid[2][0] / 2 // (val = 0||1||2) --> range = 2
-  let i8 = jeu.listGame[idGame].grid[2][1] / 2 // (val = 0||1||2) --> range = 2
-  let i9 = jeu.listGame[idGame].grid[2][2] / 2 // (val = 0||1||2) --> range = 2
+  let i1 = (jeu.listGame[idGame].grid[0][0]) / 2 // (val = 0||1||2) --> range = 2
+  let i2 = (jeu.listGame[idGame].grid[0][1]) / 2 // (val = 0||1||2) --> range = 2
+  let i3 = (jeu.listGame[idGame].grid[0][2]) / 2 // (val = 0||1||2) --> range = 2
+  let i4 = (jeu.listGame[idGame].grid[1][0]) / 2 // (val = 0||1||2) --> range = 2
+  let i5 = (jeu.listGame[idGame].grid[1][1]) / 2 // (val = 0||1||2) --> range = 2
+  let i6 = (jeu.listGame[idGame].grid[1][2]) / 2 // (val = 0||1||2) --> range = 2
+  let i7 = (jeu.listGame[idGame].grid[2][0]) / 2 // (val = 0||1||2) --> range = 2
+  let i8 = (jeu.listGame[idGame].grid[2][1]) / 2 // (val = 0||1||2) --> range = 2
+  let i9 = (jeu.listGame[idGame].grid[2][2]) / 2 // (val = 0||1||2) --> range = 2
+  let bias = 1
   return i1*brain.w1 + i2*brain.w2 + i3*brain.w3 +
           i4*brain.w4 + i5*brain.w5 + i6*brain.w6 +
-          i7*brain.w7 + i8*brain.w8 + i9*brain.w9
+          i7*brain.w7 + i8*brain.w8 + i9*brain.w9 + bias*brain.w10
 }
 
 
@@ -227,10 +220,10 @@ function useBrain(idGame, brain){
 function allowingPlay(){
   for(a=0; a<jeu.nbGames; a++){
     if(jeu.listGame[a].ended == false){
-      if(jeu.listGame[a].nextPlayer == 1 && jeu.listGame[a].lastTimePlayed + jeu.delay < performance.now() ){
+      if(jeu.listGame[a].nextPlayer == 1 && jeu.listGame[a].lastTimePlayed + jeu.delay <= performance.now() ){
         playComputer1(a)
       }
-      else if(jeu.listGame[a].nextPlayer == 2 && jeu.listGame[a].lastTimePlayed + jeu.delay < performance.now() ){
+      else if(jeu.listGame[a].nextPlayer == 2 && jeu.listGame[a].lastTimePlayed + jeu.delay <= performance.now() ){
         playComputer2(a)
       }
     }
@@ -294,8 +287,8 @@ function playComputer2(idGame){
 
 function calculateFitness(idGame, valCheckWon){
   if(valCheckWon == 0){ // Si match null, fitness = 10
-    jeu.listGame[idGame].fitness = 0
-    return 0
+    jeu.listGame[idGame].fitness = 100
+    return 100
   }
   if(valCheckWon == 1){ // Si j'ai gagné, je veux gagner avec le moins de coups possibles
     let fitness = 20
@@ -309,7 +302,7 @@ function calculateFitness(idGame, valCheckWon){
     }
     fitness += cpt
     jeu.listGame[idGame].fitness = fitness
-    return fitness
+    return 0
   }
   if(valCheckWon == 2){
     let fitness = -20
@@ -323,7 +316,7 @@ function calculateFitness(idGame, valCheckWon){
     }
     fitness += cpt // plus on a mis de temps a PERDE plus on augmente la fitness
     jeu.listGame[idGame].fitness = fitness
-    return fitness
+    return 0
   }
 }
 

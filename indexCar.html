@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Mon projet canvas</title>
+    </head>
+    <body>
+        <canvas id="mon_canvas">
+            Message pour les navigateurs ne supportant pas encore canvas.
+        </canvas>
+        <button type="button" id="restart" onclick="nextGen()"> Next geneneration</button>
+    </body>
+</html>
+<style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+      border: 0px;
+      overflow: hidden; /*  Disable scrollbars */
+      display: block;  /* No floating content on sides */
+    }
+    #restart {
+      position: absolute;
+      top: 5px;
+      width: 10%;
+      height: 40px;
+      left: 30%;
+      z-index: 100;
+      display:block;
+      overflow: auto;
+    }
+
+</style>
+<script src="carJS.js"></script>
